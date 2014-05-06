@@ -130,6 +130,37 @@ test("post", function(t) {
    req.end();
 });
 
+test("post with specific uri", function(t) {
+  var dataCalled = false;
+
+  var scope = nock()
+     .post('http://www.google.com:80/form')
+     .reply(201, "OK!");
+
+   var req = http.request({
+       host: "www.google.com"
+     , method: 'POST'
+     , path: '/form'
+     , port: 80
+   }, function(res) {
+
+     t.equal(res.statusCode, 201);
+     res.on('end', function() {
+       t.ok(dataCalled);
+       scope.done();
+       t.end();
+     });
+     res.on('data', function(data) {
+       dataCalled = true;
+       t.ok(data instanceof Buffer, "data should be buffer");
+       t.equal(data.toString(), "OK!", "response should match");
+     });
+
+   });
+
+   req.end();
+});
+
 
 
 test("post with empty response body", function(t) {
